@@ -1,5 +1,5 @@
 # Multi-stage build for unified deployment
-FROM node:16-alpine AS frontend-builder
+FROM node:14-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -12,8 +12,8 @@ RUN npm install --legacy-peer-deps
 # Copy frontend source code
 COPY frontend/ ./
 
-# Build frontend with OpenSSL legacy provider
-RUN NODE_OPTIONS="--openssl-legacy-provider" npm run build
+# Build frontend
+RUN npm run build
 
 # Python backend stage
 FROM python:3.9-slim AS backend
