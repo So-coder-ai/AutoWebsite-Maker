@@ -15,7 +15,5 @@ services:
         value: generated_pages
       - key: ENVIRONMENT
         value: production
-      - key: REACT_APP_API_URL
-        value: ""
       - key: PORT
         value: 8000
