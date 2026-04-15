@@ -1,8 +1,10 @@
 services:
   - type: web
     name: autowebsite-maker
-    runtime: node
+    runtime: python
     buildCommand: |
+      curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      apt-get install -y nodejs
       cd backend && pip install -r requirements.txt
       cd ../frontend && npm install && npm run build
     startCommand: |
