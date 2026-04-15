@@ -56,7 +56,7 @@ personalization_engine = PersonalizationEngine()
 
 @app.get("/")
 async def root():
-    return {"message": "AI Landing Page Personalizer API"}
+    return FileResponse("static/index.html")
 
 @app.post("/analyze-ad")
 async def analyze_ad(
@@ -179,6 +179,15 @@ async def get_history():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
+
+@app.get("/{path:path}")
+async def serve_static(path: str):
+    # Serve React frontend files
+    if os.path.exists(f"static/{path}"):
+        return FileResponse(f"static/{path}")
+    else:
+        # For React Router, serve index.html for all non-API routes
+        return FileResponse("static/index.html")
 
 if __name__ == "__main__":
     import uvicorn
