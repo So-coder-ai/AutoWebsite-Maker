@@ -1,185 +1,152 @@
-# Deployment Guide for AI Landing Page Personalizer
+# Single Service Deployment Guide for AI Landing Page Personalizer
 
 ## Overview
-This guide covers deploying the AI Landing Page Personalizer on Render.com with separate backend and frontend services using the updated render.yaml configuration files.
+This guide covers deploying the entire AI Landing Page Personalizer as a single service on Render.com using the unified render.yaml configuration.
 
 ## Prerequisites
 - Render.com account
-- Groq API key (not OpenAI)
+- Groq API key
 - GitHub repository with the project code
 
-## Quick Start (Using render.yaml Files)
+## Quick Start - One Service Deployment
 
 ### 1. Push to GitHub
-Ensure your project is pushed to a GitHub repository with the following structure:
-```
-AutoWebsite-Maker/
-  backend/
-    main.py
-    requirements.txt
-    render.yaml
-    services/
-    models/
-  frontend/
-    src/
-    package.json
-    render.yaml
-    .env.example
-```
+Ensure your project is pushed to a GitHub repository with the unified `render.yaml` file at the root.
 
-### 2. Backend Deployment (FastAPI)
+### 2. Deploy as Single Service
 
 #### Automatic Deployment with render.yaml:
 1. Go to [Render Dashboard](https://dashboard.render.com)
 2. Click "New +" -> "Web Service"
 3. Connect your GitHub repository
-4. Select the `backend` folder as root directory
-5. Render will automatically detect and use `render.yaml`
+4. Select the **root directory** (not backend or frontend subdirectories)
+5. Render will automatically detect and use the root `render.yaml`
 
-#### Manual Configuration (if needed):
-- **Name**: `autowebsite-backend`
-- **Environment**: `Python 3`
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- **Instance Type**: `Free` (or upgrade as needed)
+#### What Happens Automatically:
+- **Backend**: Python dependencies installed from `backend/requirements.txt`
+- **Frontend**: Node dependencies installed and React app built to `frontend/build`
+- **Static Files**: Frontend build files served as static content
+- **API Server**: FastAPI backend runs on the same service
 
-#### Environment Variables for Backend:
+### 3. Environment Variables
+Set these environment variables in your Render service:
+
+#### Required Variables:
 ```
 GROQ_API_KEY=your_groq_api_key_here
 DATABASE_URL=postgresql://user:password@host:port/dbname
-CORS_ORIGINS=https://your-frontend-domain.onrender.com
+```
+
+#### Optional Variables (already configured):
+```
+CORS_ORIGINS=*
 GENERATED_PAGES_DIR=generated_pages
 ENVIRONMENT=production
+REACT_APP_API_URL=
 ```
 
-#### Database Setup:
+### 4. Database Setup
 1. In Render Dashboard, click "New +" -> "PostgreSQL"
-2. Name: `landing-page-db`
+2. Name: `autowebsite-db`
 3. Plan: Free
-4. After creation, copy the connection string from the database page
-5. Add it to your backend environment variables as `DATABASE_URL`
+4. After creation, copy the connection string
+5. Add it to your service environment variables as `DATABASE_URL`
 
-### 3. Frontend Deployment (React)
+### 5. How It Works
 
-#### Automatic Deployment with render.yaml:
-1. Go to Render Dashboard
-2. Click "New +" -> "Web Service"
-3. Connect your GitHub repository
-4. Select the `frontend` folder as root directory
-5. Render will automatically detect and use `render.yaml`
-
-#### Manual Configuration (if needed):
-- **Name**: `autowebsite-frontend`
-- **Environment**: `Node`
-- **Build Command**: `npm install && npm run build`
-- **Publish Directory**: `build`
-- **Instance Type**: `Static`
-
-#### Environment Variables for Frontend:
+#### Service Architecture:
 ```
-REACT_APP_API_URL=https://your-backend-domain.onrender.com
+Single Render Service (Node Runtime)
+    |
+    |-- Backend API (FastAPI on port $PORT)
+    |-- Frontend Static Files (React build)
+    |-- Generated Pages (/generated/*)
 ```
 
-### 4. Post-Deployment Steps
+#### Request Flow:
+1. **Frontend Pages**: Served as static files from `/frontend/build`
+2. **API Requests**: Handled by FastAPI backend
+3. **Generated Pages**: Served from `/generated` directory
+4. **File Uploads**: Processed by backend endpoints
 
-#### Update CORS Origins:
-1. Get your frontend URL from Render dashboard
-2. Update backend `CORS_ORIGINS` environment variable:
-```
-CORS_ORIGINS=https://your-frontend-domain.onrender.com
-```
+### 6. Testing Your Deployment
 
-#### Test the Application:
-1. Visit your frontend URL
-2. Test ad upload and analysis
-3. Test landing page personalization
-4. Verify generated pages are accessible via `/generated/{id}.html`
+#### Health Check:
+- Visit: `https://your-service.onrender.com/health`
+- Should return: `{"status": "healthy", "timestamp": "..."}`
 
-## Key Changes for This Version
-
-### Backend Improvements:
-- **Groq Integration**: Uses Groq API instead of OpenAI
-- **Async Scraping**: Fixed blocking calls with httpx
-- **Graceful Selenium**: Degrades gracefully without Chrome
-- **Database Fixes**: Properly saves PageGeneration records
-- **History Endpoint**: New `/history` endpoint for recent generations
-- **Error Handling**: Better HTTP error propagation
-- **Logging**: Added logging for JSON parse failures
-
-### Frontend Improvements:
-- **API Configuration**: Uses environment variable for API URL
-- **Render Compatibility**: Proper static site configuration
-
-### Render Configuration:
-- **Port Handling**: Uses `$PORT` environment variable
-- **Directory Structure**: Proper root directory configuration
-- **Environment Variables**: All required variables documented
+#### Full Application Test:
+1. Visit your service URL
+2. Upload an ad creative (image, URL, or text)
+3. Enter a landing page URL
+4. Click "Generate Personalized Page"
+5. View the results and generated page
 
 ## Environment Variables Reference
 
-### Backend Variables:
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GROQ_API_KEY` | Yes | Your Groq API key |
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `CORS_ORIGINS` | Yes | Allowed origins for CORS |
-| `GENERATED_PAGES_DIR` | No | Directory for generated pages (default: generated_pages) |
-| `ENVIRONMENT` | No | Environment (default: production) |
-
-### Frontend Variables:
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `REACT_APP_API_URL` | Yes | Backend API URL |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GROQ_API_KEY` | Yes | - | Your Groq API key for AI processing |
+| `DATABASE_URL` | Yes | - | PostgreSQL connection string |
+| `CORS_ORIGINS` | No | `*` | Allowed origins for CORS |
+| `GENERATED_PAGES_DIR` | No | `generated_pages` | Directory for generated pages |
+| `ENVIRONMENT` | No | `production` | Environment setting |
+| `REACT_APP_API_URL` | No | `""` | Frontend API URL (empty for same service) |
 
 ## Troubleshooting
 
 ### Common Issues:
 
-#### 1. CORS Errors
+#### 1. Build Fails
 ```
-Error: Access to fetch at 'https://backend.onrender.com' from origin 'https://frontend.onrender.com' has been blocked by CORS policy
+Error: Build command failed
 ```
-**Solution**: Ensure `CORS_ORIGINS` includes your frontend URL exactly
+**Solution**: Check build logs, verify all dependencies are correct
 
-#### 2. Database Connection Issues
+#### 2. Frontend Not Loading
 ```
-Error: OperationalError: could not connect to server
+Error: Cannot GET /
 ```
-**Solution**: Verify `DATABASE_URL` is correctly set and PostgreSQL service is running
+**Solution**: Ensure frontend build completed successfully
 
-#### 3. Groq API Errors
+#### 3. API Not Responding
+```
+Error: 502 Bad Gateway
+```
+**Solution**: Check backend startup logs, verify FastAPI is running
+
+#### 4. Database Connection
+```
+Error: could not connect to server
+```
+**Solution**: Verify DATABASE_URL is correct and PostgreSQL is running
+
+#### 5. Groq API Issues
 ```
 Error: The api_key client option must be set
 ```
-**Solution**: Ensure `GROQ_API_KEY` is set correctly in backend environment
-
-#### 4. Build Failures
-**Solution**: Check build logs in Render Dashboard, verify all dependencies in requirements.txt
-
-#### 5. File Upload Issues
-**Solution**: Ensure file sizes are within limits, check content-type headers
+**Solution**: Ensure GROQ_API_KEY is set correctly
 
 ### Debugging Steps:
 
-1. **Check Logs**: Go to service -> "Logs" in Render Dashboard
-2. **Test Health Endpoint**: Visit `https://your-backend.onrender.com/health`
-3. **Verify Environment Variables**: Check service -> "Environment" tab
-4. **Test API Directly**: Use curl or Postman to test endpoints
+1. **Check Build Logs**: Service -> "Logs" -> Build tab
+2. **Check Runtime Logs**: Service -> "Logs" -> Runtime tab
+3. **Test Health Endpoint**: Visit `/health` endpoint
+4. **Verify Environment**: Service -> "Environment" tab
 
-## Monitoring and Maintenance
+## Advantages of Single Service
 
-### Health Checks:
-- Backend: `/health` endpoint (automatically monitored by Render)
-- Frontend: Static site health check
+### Benefits:
+- **Simpler Setup**: One service to configure and manage
+- **No CORS Issues**: Frontend and backend on same domain
+- **Cost Effective**: Only one service running
+- **Easier Debugging**: Single set of logs to check
+- **Faster Deployment**: One deployment process
 
-### Log Monitoring:
-- Backend logs: Available in Render Dashboard
-- Frontend logs: Available in Render Dashboard
-- Database logs: Available in PostgreSQL service page
-
-### Performance Monitoring:
-- Render provides basic metrics on the dashboard
-- Monitor response times and error rates
+### Trade-offs:
+- **Less Scalability**: Frontend and backend share resources
+- **Shared Downtime**: If backend fails, frontend also unavailable
+- **Build Complexity**: Both frontend and backend build together
 
 ## Scaling Considerations
 
@@ -190,25 +157,48 @@ Error: The api_key client option must be set
 - Database storage limits reached
 
 ### Scaling Options:
-1. **Backend**: Upgrade to Standard or Pro instance
-2. **Database**: Upgrade PostgreSQL plan
-3. **Frontend**: Usually fine on Free tier (static hosting)
+1. **Upgrade Instance**: Move to Standard or Pro plan
+2. **Separate Services**: Split into backend/frontend for better scaling
+3. **Database Upgrade**: Upgrade PostgreSQL plan
+
+## Local Development
+
+### Run Locally:
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+
+# Frontend (in separate terminal)
+cd frontend
+npm install
+npm start
+```
+
+### Environment Files:
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend  
+cp frontend/.env.example frontend/.env
+```
 
 ## Security Best Practices
 
 1. **API Keys**: Never commit API keys to Git
 2. **HTTPS**: All services automatically use HTTPS on Render
-3. **Rate Limiting**: Consider implementing rate limiting for API endpoints
-4. **Input Validation**: All inputs are validated in the backend
-5. **File Security**: Uploaded files are processed safely
+3. **Input Validation**: All inputs validated in backend
+4. **File Security**: Uploaded files processed safely
 
 ## Cost Optimization
 
-### Free Tier Limitations:
+### Free Tier Includes:
 - 750 hours/month compute time
 - 100GB bandwidth/month
-- Limited database connections
-- No custom domains on free tier
+- Static file serving
+- Basic monitoring
 
 ### Optimization Tips:
 1. Implement caching for repeated requests
@@ -216,13 +206,12 @@ Error: The api_key client option must be set
 3. Use efficient database queries
 4. Monitor API usage closely
 
-## Custom Domain Setup (Optional)
+## Custom Domain (Optional)
 
 1. In Render Dashboard, go to your service settings
 2. Click "Custom Domains"
 3. Add your custom domain
 4. Update DNS records as instructed by Render
-5. Update CORS origins if needed
 
 ## Support
 
@@ -235,25 +224,4 @@ Error: The api_key client option must be set
 - Review deployment logs
 - Test locally before deploying
 
-## Local Development Setup
-
-### Backend:
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### Frontend:
-```bash
-cd frontend
-npm install
-npm start
-```
-
-### Environment Files:
-- Copy `backend/.env.example` to `backend/.env`
-- Copy `frontend/.env.example` to `frontend/.env`
-- Fill in your API keys and URLs
-
-This deployment setup provides a production-ready environment for your AI Landing Page Personalizer with automatic scaling, monitoring, and maintenance using the updated render.yaml configuration files.
+This single-service deployment provides a simple, cost-effective way to run your AI Landing Page Personalizer with minimal configuration overhead.
