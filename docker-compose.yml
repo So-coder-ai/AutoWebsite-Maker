@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: landing_page_db
+    environment:
+      POSTGRES_DB: landing_page_personalizer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Redis (for caching and session management)
+  redis:
+    image: redis:7-alpine
+    container_name: landing_page_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: landing_page_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/landing_page_personalizer
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - generated_pages:/app/generated_pages
+    networks:
+      - app-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: landing_page_frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    command: npm start
+
+volumes:
+  postgres_data:
+  generated_pages:
+
+networks:
+  app-network:
+    driver: bridge
