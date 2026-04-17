@@ -1,54 +1,56 @@
-import httpx
 from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin, urlparse
 from typing import Dict, Any, List
 import asyncio
-import aiohttp
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import time
-import shutil
 import logging
+import requests
+from playwright.async_api import async_playwright
 
 class PageScraper:
     def __init__(self):
-        self.client = httpx.AsyncClient(
-            headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            },
-            timeout=10.0
-        )
-    
+        pass
+
     async def scrape_page(self, url: str) -> Dict[str, Any]:
         try:
-            response = await self.client.get(url)
-            soup = BeautifulSoup(response.content, 'html.parser')
+            try:
+                html = await self.scrape_dynamic_page(url)
+                js_rendered = True
+            except Exception:
+                logging.warning("Dynamic scrape failed; falling back to static fetch.")
+                html = self.scrape_static_page(url)
+                js_rendered = False
+
+            soup = BeautifulSoup(html, 'html.parser')
+
             page_data = {
                 "url": url,
+                "raw_html": html,
                 "title": self._get_title(soup),
                 "meta_description": self._get_meta_description(soup),
+
                 "structure": self._analyze_structure(soup),
+
                 "content": self._extract_content(soup),
+
                 "components": self._identify_components(soup),
+
                 "styles": self._extract_styles(soup, url),
                 "images": self._extract_images(soup, url),
                 "forms": self._extract_forms(soup),
-                "links": self._extract_links(soup, url)
+                "links": self._extract_links(soup, url),
+
+                "js_rendered": js_rendered
             }
-            
-            if self._is_js_heavy(soup):
-                js_data = await self._scrape_with_selenium(url)
-                page_data.update(js_data)
-            
+
             return page_data
-            
+
         except Exception as e:
+            logging.error(f"Playwright scraping failed: {e}")
+
             return {
                 "url": url,
+                "raw_html": "",
                 "title": "Failed to load",
                 "error": str(e),
                 "structure": {"type": "unknown"},
@@ -57,8 +59,47 @@ class PageScraper:
                 "styles": {},
                 "images": [],
                 "forms": [],
-                "links": []
+                "links": [],
+                "js_rendered": False
             }
+
+    def scrape_static_page(self, url: str) -> str:
+        response = requests.get(
+            url,
+            timeout=20,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        response.raise_for_status()
+        return response.text
+
+    async def scrape_dynamic_page(self, url: str) -> str:
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+
+                context = await browser.new_context(
+                    user_agent="Mozilla/5.0"
+                )
+
+                page = await context.new_page()
+
+                await page.goto(url, timeout=60000)
+
+                await page.wait_for_load_state("networkidle")
+
+                for _ in range(5):
+                    await page.mouse.wheel(0, 3000)
+                    await page.wait_for_timeout(1000)
+
+                html = await page.content()
+
+                await browser.close()
+
+                return html
+
+        except Exception as e:
+            logging.error(f"Playwright dynamic scraping failed: {e}")
+            raise
     
     def _get_title(self, soup: BeautifulSoup) -> str:
         title_tag = soup.find('title')
@@ -191,7 +232,7 @@ class PageScraper:
                     components.append({
                         "type": comp_type,
                         "selector": selector,
-                        "html": str(element)[:500],  # Truncate HTML
+                        "html": str(element)[:500],
                         "text": element.get_text(strip=True)[:200]
                     })
         
@@ -254,56 +295,13 @@ class PageScraper:
         links = []
         for a in soup.find_all('a', href=True)[:20]:
             href = a.get('href')
-            if href and not href.startswith('#'):  # Skip anchor links
+            if href and not href.startswith('#'):
                 links.append({
                     "href": urljoin(base_url, href),
                     "text": a.get_text().strip(),
                     "title": a.get('title', '')
                 })
         return links
-    
-    def _is_js_heavy(self, soup: BeautifulSoup) -> bool:
-        script_count = len(soup.find_all('script'))
-        has_react = bool(soup.find_all(text=re.compile(r'react|React', re.I)))
-        has_vue = bool(soup.find_all(text=re.compile(r'vue|Vue', re.I)))
-        has_angular = bool(soup.find_all(text=re.compile(r'angular|Angular', re.I)))
-        
-        return script_count > 10 or has_react or has_vue or has_angular
-    
-    async def _scrape_with_selenium(self, url: str) -> Dict[str, Any]:
-        if shutil.which("chromedriver") is None:
-            logging.warning("ChromeDriver not found, skipping Selenium scraping")
-            return {"js_rendered": False}
-            
-        try:
-            options = Options()
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            
-            driver = webdriver.Chrome(options=options)
-            driver.get(url)
-            
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-            
-            time.sleep(3)
-            
-            page_source = driver.page_source
-            soup = BeautifulSoup(page_source, 'html.parser')
-            
-            driver.quit()
-            
-            return {
-                "content": self._extract_content(soup),
-                "components": self._identify_components(soup),
-                "js_rendered": True
-            }
-            
-        except Exception as e:
-            logging.warning(f"Selenium scraping failed: {e}")
-            return {"js_rendered": False}
     
     def _find_cta_in_element(self, element) -> str:
         cta_selectors = ['button', 'a', '[class*="btn"]', '[class*="cta"]']

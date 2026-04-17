@@ -54,11 +54,9 @@ function App() {
     setStep('processing');
     
     try {
-      // Scrape the landing page
       const pageContent = await scrapePage(url);
       setPageData(pageContent);
 
-      // Generate personalized page
       const personalizedResult = await generatePersonalizedPage({
         ad_analysis: adData,
         page_content: pageContent,
@@ -89,10 +87,10 @@ function App() {
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                AI Landing Page Personalizer
+                Project Humanise
               </h1>
               <p className="text-xl text-gray-600">
-                Transform your landing pages with AI-powered personalization based on your ad creatives
+                Personalize existing landing pages using ad-aligned messaging
               </p>
             </div>
 

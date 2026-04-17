@@ -1,21 +1,24 @@
 services:
   - type: web
-    name: autowebsite-maker
+    name: project-humanise
     runtime: docker
     dockerContext: .
     dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: GROQ_API_KEY
         sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGINS
-        value: "*"
+        sync: false
       - key: GENERATED_PAGES_DIR
         value: generated_pages
       - key: ENVIRONMENT
         value: production
-      - key: REACT_APP_API_URL
-        value: ""
       - key: PORT
         value: 8000

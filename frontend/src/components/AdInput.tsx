@@ -74,7 +74,7 @@ const AdInput: React.FC<AdInputProps> = ({ onAnalyze, loading }) => {
           Step 1: Upload Ad Creative
         </h2>
         <p className="text-gray-600">
-          Provide your ad creative for AI analysis
+          Provide your ad creative for analysis
         </p>
       </div>
 

@@ -16,7 +16,7 @@ const ProcessingStatus: React.FC<ProcessingStatusProps> = ({ isVisible }) => {
   const steps = [
     { icon: SparklesIcon, title: 'Analyzing Ad Creative', description: 'Extracting key information from your ad' },
     { icon: CpuChipIcon, title: 'Scraping Landing Page', description: 'Analyzing page structure and content' },
-    { icon: DocumentTextIcon, title: 'Generating Personalization', description: 'Creating AI-powered enhancements' },
+    { icon: DocumentTextIcon, title: 'Generating Personalization', description: 'Creating personalized enhancements' },
     { icon: CheckCircleIcon, title: 'Finalizing Results', description: 'Preparing your personalized page' }
   ];
   
@@ -50,7 +50,7 @@ const ProcessingStatus: React.FC<ProcessingStatusProps> = ({ isVisible }) => {
           Creating Your Personalized Page
         </h2>
         <p className="text-lg text-gray-600">
-          Our AI is analyzing your ad creative and enhancing your landing page
+          Processing your ad creative and preparing page enhancements
         </p>
       </div>
 
@@ -94,7 +94,7 @@ const ProcessingStatus: React.FC<ProcessingStatusProps> = ({ isVisible }) => {
                       ? 'text-green-900'
                       : 'text-gray-600'
                   }`}>
-                    {step.label}
+                    {step.title}
                   </h3>
                   <p className={`text-sm ${
                     isActive

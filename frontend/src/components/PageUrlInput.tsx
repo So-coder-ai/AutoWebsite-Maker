@@ -118,7 +118,7 @@ const PageUrlInput: React.FC<PageUrlInputProps> = ({ onSubmit, loading, adAnalys
         <h4 className="font-semibold text-blue-900 mb-2">What happens next?</h4>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• We'll analyze your landing page structure and content</li>
-          <li>• AI will enhance the page based on your ad creative</li>
+          <li>• The system will enhance the page based on your ad creative</li>
           <li>• You'll see a side-by-side comparison</li>
           <li>• Get a live preview of the personalized version</li>
         </ul>

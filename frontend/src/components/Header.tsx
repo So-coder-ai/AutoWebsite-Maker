@@ -11,10 +11,10 @@ const Header: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">
-              AI Landing Page Personalizer
+              Project Humanise
             </h1>
             <p className="text-sm text-gray-600">
-              Transform your landing pages with AI
+              Landing page personalization workflow
             </p>
           </div>
         </div>

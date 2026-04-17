@@ -46,7 +46,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onReset }) => {
           Your Personalized Landing Page is Ready!
         </h2>
         <p className="text-lg text-gray-600">
-          AI has enhanced your landing page based on your ad creative
+          Your landing page has been enhanced based on your ad creative
         </p>
       </div>
 
@@ -141,7 +141,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onReset }) => {
           <div className="card">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-green-700">Personalized Page</h3>
-              <span className="text-sm text-green-600">AI Enhanced</span>
+              <span className="text-sm text-green-600">Enhanced</span>
             </div>
             <div className="border border-green-200 rounded-lg overflow-hidden" style={{ height: '600px' }}>
               <iframe
@@ -156,7 +156,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onReset }) => {
       </div>
 
       <div className="mt-8 card">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">AI Enhancement Summary</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Enhancement Summary</h3>
         <div className="prose max-w-none">
           <p className="text-gray-700">{result.changes_summary}</p>
         </div>
