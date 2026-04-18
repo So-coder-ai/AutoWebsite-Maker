@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict, Any
 import os
@@ -62,6 +62,11 @@ personalization_engine = PersonalizationEngine()
 @app.get("/")
 async def root():
     return FileResponse(STATIC_ROOT / "index.html")
+
+
+@app.head("/")
+async def root_head():
+    return Response()
 
 
 @app.post("/analyze-ad")
