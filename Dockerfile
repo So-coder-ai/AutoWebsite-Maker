@@ -8,7 +8,7 @@ RUN npm install --legacy-peer-deps
 
 COPY frontend/ ./
 
-RUN npm run build
+RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
 
 FROM python:3.9-slim AS backend
 
