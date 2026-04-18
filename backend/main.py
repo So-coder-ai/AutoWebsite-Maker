@@ -24,7 +24,7 @@ _CRA_ASSETS = STATIC_ROOT / "static"
 os.makedirs(os.getenv("GENERATED_PAGES_DIR", "generated_pages"), exist_ok=True)
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Project Humanise", version="1.0.0")
+app = FastAPI(title="AutoWebsite-Maker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

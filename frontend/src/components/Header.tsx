@@ -11,7 +11,7 @@ const Header: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">
-              Project Humanise
+              AutoWebsite-Maker
             </h1>
             <p className="text-sm text-gray-600">
               Landing page personalization workflow

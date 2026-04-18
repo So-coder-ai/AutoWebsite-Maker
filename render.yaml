@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: project-humanise
+    name: AutoWebsite-Maker
     runtime: docker
     dockerContext: .
     dockerfilePath: ./Dockerfile

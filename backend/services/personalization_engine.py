@@ -121,8 +121,9 @@ class PersonalizationEngine:
         banner = soup.new_tag("div", id="ai-urgency-banner")
         banner.string = f"🔥 {headline} — {offer}"
         banner["style"] = (
-            "background:linear-gradient(90deg,#7c3aed,#4f46e5);color:#fff;padding:12px;"
-            "text-align:center;font-weight:700;font-size:16px;position:sticky;top:0;z-index:2147483647;"
+            "background:linear-gradient(90deg,#7c3aed,#4f46e5) !important;color:#ffffff !important;"
+            "padding:12px;text-align:center;font-weight:700;font-size:16px;position:sticky;top:0;"
+            "z-index:2147483647;font-family:system-ui,-apple-system,sans-serif !important;"
         )
         soup.body.insert(0, banner)
 
@@ -175,8 +176,9 @@ class PersonalizationEngine:
             button = soup.new_tag("button")
             button.string = cta
             button["style"] = (
-                "margin-top:16px;padding:12px 22px;background:#4f46e5;color:#fff;border:none;"
-                "border-radius:8px;font-weight:600;cursor:pointer;"
+                "margin-top:16px;padding:12px 22px;background:#4f46e5 !important;"
+                "color:#ffffff !important;border:none;border-radius:8px;font-weight:600;cursor:pointer;"
+                "font-family:system-ui,-apple-system,sans-serif !important;"
             )
             hero.append(button)
 
@@ -186,17 +188,26 @@ class PersonalizationEngine:
             existing.decompose()
 
         section = soup.new_tag("section", id="ai-proof-points")
+        # Force colors so host pages (e.g. dark themes like Spotify) cannot inherit white text.
         section["style"] = (
-            "margin:24px auto;padding:20px;max-width:900px;border:1px solid #e5e7eb;"
-            "border-radius:12px;background:#f8fafc;"
+            "margin:24px auto;padding:20px;max-width:900px;border:2px solid #334155 !important;"
+            "border-radius:12px;background-color:#f1f5f9 !important;color:#0f172a !important;"
+            "font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;"
+            "box-sizing:border-box !important;line-height:1.5 !important;"
         )
         title = soup.new_tag("h3")
         title.string = "Why this offer fits"
-        title["style"] = "margin:0 0 10px 0;font-size:22px;"
+        title["style"] = (
+            "margin:0 0 10px 0;font-size:22px;font-weight:700 !important;"
+            "color:#0f172a !important;background:transparent !important;"
+        )
         section.append(title)
 
         ul = soup.new_tag("ul")
-        ul["style"] = "margin:0;padding-left:20px;line-height:1.8;"
+        ul["style"] = (
+            "margin:0;padding-left:20px;line-height:1.8;color:#1e293b !important;"
+            "list-style:disc !important;background:transparent !important;"
+        )
         points = [
             f"Message aligned for {audience}.",
             f"Offer emphasis: {offer}.",
@@ -205,6 +216,7 @@ class PersonalizationEngine:
         for point in points:
             li = soup.new_tag("li")
             li.string = point
+            li["style"] = "color:#1e293b !important;background:transparent !important;"
             ul.append(li)
         section.append(ul)
 
