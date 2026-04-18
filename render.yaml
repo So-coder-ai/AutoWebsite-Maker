@@ -20,5 +20,3 @@ services:
         value: generated_pages
       - key: ENVIRONMENT
         value: production
-      - key: PORT
-        value: 8000
