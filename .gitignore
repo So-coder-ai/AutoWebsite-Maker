@@ -31,7 +31,6 @@ backend/venv/
 # Backend runtime artifacts
 backend/generated_pages/
 backend/uploads/
-backend/static/
 backend/*.db
 backend/*.sqlite
 backend/*.sqlite3
