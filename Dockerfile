@@ -14,7 +14,7 @@ RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 # Copy source and build
 COPY frontend/ ./
-RUN npm run build
+RUN NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=4096" npm run build
 
 
 # ================= BACKEND =================
@@ -43,12 +43,9 @@ COPY backend/ ./
 # Create directory for generated pages
 RUN mkdir -p generated_pages
 
-# ================= RENDER CONFIG =================
-EXPOSE 10000
-
 ENV PYTHONPATH=/app
 ENV GENERATED_PAGES_DIR=generated_pages
-ENV PORT=10000
 
-# Start server
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+EXPOSE 8000
+
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -1,6 +1,7 @@
+# Backend-only image (API + Playwright). Build context must be ./backend
+# For Render all-in-one (React UI + API), use the repo root Dockerfile instead.
 FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app
 
 # Install system dependencies
@@ -25,12 +26,9 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p generated_pages uploads
 
-# ================= RENDER FIX =================
-EXPOSE 10000
-
-ENV PORT=10000
 ENV PYTHONPATH=/app
 ENV GENERATED_PAGES_DIR=generated_pages
 
-# Start server
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+EXPOSE 8000
+
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
