@@ -2,13 +2,17 @@ FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
+ENV NODE_OPTIONS=--openssl-legacy-provider
+ENV NPM_CONFIG_AUDIT=false
+ENV NPM_CONFIG_FUND=false
+
 COPY frontend/package*.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 COPY frontend/ ./
 
-RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
+RUN npm run build
 
 FROM python:3.9-slim AS backend
 
