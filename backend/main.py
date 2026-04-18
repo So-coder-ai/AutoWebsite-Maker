@@ -6,6 +6,7 @@ from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict, Any
 import os
 import uuid
+from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -16,6 +17,9 @@ from services.page_scraper import PageScraper
 from services.personalization_engine import PersonalizationEngine
 from models.database import engine, Base, SessionLocal
 from models.page_model import PageGeneration
+
+STATIC_ROOT = Path(__file__).resolve().parent / "static"
+_CRA_ASSETS = STATIC_ROOT / "static"
 
 os.makedirs(os.getenv("GENERATED_PAGES_DIR", "generated_pages"), exist_ok=True)
 Base.metadata.create_all(bind=engine)
@@ -32,6 +36,8 @@ app.add_middleware(
 
 generated_dir = os.getenv("GENERATED_PAGES_DIR", "generated_pages")
 app.mount("/generated", StaticFiles(directory=generated_dir), name="generated")
+if _CRA_ASSETS.is_dir():
+    app.mount("/static", StaticFiles(directory=str(_CRA_ASSETS)), name="cra_assets")
 
 class PageScrapeRequest(BaseModel):
     page_url: HttpUrl
@@ -55,7 +61,7 @@ personalization_engine = PersonalizationEngine()
 
 @app.get("/")
 async def root():
-    return FileResponse("static/index.html")
+    return FileResponse(STATIC_ROOT / "index.html")
 
 
 @app.post("/analyze-ad")
@@ -203,9 +209,16 @@ async def health():
 
 @app.get("/{path:path}")
 async def serve_static(path: str):
-    if os.path.exists(f"static/{path}"):
-        return FileResponse(f"static/{path}")
-    return FileResponse("static/index.html")
+    index = STATIC_ROOT / "index.html"
+    candidate = (STATIC_ROOT / path).resolve()
+    static_resolved = STATIC_ROOT.resolve()
+    try:
+        candidate.relative_to(static_resolved)
+    except ValueError:
+        return FileResponse(index)
+    if candidate.is_file():
+        return FileResponse(candidate)
+    return FileResponse(index)
 
 
 if __name__ == "__main__":
