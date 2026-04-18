@@ -37,10 +37,9 @@ export interface PersonalizedResult {
 function App() {
   const [step, setStep] = useState<'input' | 'processing' | 'results'>('input');
   const [adData, setAdData] = useState<AdAnalysis | null>(null);
-  const [pageData, setPageData] = useState<PageContent | null>(null);
   const [result, setResult] = useState<PersonalizedResult | null>(null);
 
-  const { analyzeAd, scrapePage, generatePersonalizedPage, loading } = usePagePersonalization();
+  const { scrapePage, generatePersonalizedPage, loading } = usePagePersonalization();
 
   const handleAdSubmit = async (data: AdAnalysis) => {
     setAdData(data);
@@ -55,7 +54,6 @@ function App() {
     
     try {
       const pageContent = await scrapePage(url);
-      setPageData(pageContent);
 
       const personalizedResult = await generatePersonalizedPage({
         ad_analysis: adData,
@@ -74,7 +72,6 @@ function App() {
   const handleReset = () => {
     setStep('input');
     setAdData(null);
-    setPageData(null);
     setResult(null);
   };
 
@@ -110,7 +107,7 @@ function App() {
         )}
 
         {step === 'processing' && (
-          <ProcessingStatus />
+          <ProcessingStatus isVisible />
         )}
 
         {step === 'results' && result && (
